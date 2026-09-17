@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -23,7 +24,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-          squares[position.getRow() -1][position.getRow() -1] = piece;
+          squares[position.getRow() -1][position.getColumn() -1] = piece;
     }
 
     /**
@@ -57,5 +58,20 @@ public class ChessBoard {
                 this.addPiece(new ChessPosition(row, col), new ChessPiece(color, piece));
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ChessBoard that = (ChessBoard) o;
+        return Arrays.deepEquals(squares, that.squares);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(squares);
     }
 }
