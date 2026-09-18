@@ -80,11 +80,9 @@ public class ChessPiece {
 
     }
 
-    private Collection<ChessMove> bishopMoves(ChessBoard board, ChessPosition position) {
+    private Collection<ChessMove> slidingMoves(ChessBoard board, ChessPosition position, int[][] possibleDirections) {
         ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
-        // bishop always moves in some kind of diagonal line, so make sure it can only do that
 
-        int[][] possibleDirections = {{1,1}, {1,-1}, {-1,1}, {-1,-1}};
         for(int[] direction : possibleDirections) { //basically the java equiv of forEach(){} in js
             int row = position.getRow();
             int col = position.getColumn();
@@ -114,33 +112,79 @@ public class ChessPiece {
         return moves;
     }
 
+    private Collection<ChessMove> hoppingMoves(ChessBoard board, ChessPosition position, int[][] possibleDirections) {
+        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
+
+        for (int[] direction : possibleDirections) {
+            int row = position.getRow() + direction[0];
+            int col = position.getColumn() + direction[1];
+
+            if (row < 1 || col < 1 || row > 8 || col > 8){
+                continue;
+            }
+
+            ChessPosition newPosition = new ChessPosition(row, col);
+            ChessPiece target = board.getPiece(newPosition);
+            if (target == null) {
+                moves.add(new ChessMove(position, newPosition, null));
+            } else {
+                if (target.getTeamColor() != this.getTeamColor()) {
+                    moves.add(new ChessMove(position, newPosition, null));
+                }
+            }
+        }
+
+        return moves;
+    }
+
+    private Collection<ChessMove> bishopMoves(ChessBoard board, ChessPosition position) {
+        // bishop always moves in some kind of diagonal line, so make sure it can only do that
+        int[][] possibleDirections = {{1,1}, {1,-1}, {-1,1}, {-1,-1}};
+        return slidingMoves(board, position, possibleDirections);
+    }
+
     private Collection<ChessMove> rookMoves(ChessBoard board, ChessPosition position) {
-        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
-
-        return moves;
-    }
-
-    private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition position) {
-        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
-
-        return moves;
-    }
-
-    private Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition position) {
-        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
-
-        return moves;
+        // rooks either move up, down, left, or right. Same column for up/down, same row for left/right
+        int[][] possibleDirections = {{1,0}, {-1,0}, {0,1}, {0,-1}};
+        return slidingMoves(board, position, possibleDirections);
     }
 
     private Collection<ChessMove> queenMoves(ChessBoard board, ChessPosition position) {
-        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
-
-        return moves;
+        // queens move in a straight line horizontally, vertically, or diagonally, so rook moves AND bishop moves.
+        int[][] possibleDirections = {
+                {1,1}, {1,-1}, {-1,1}, {-1,-1}, // same as bishop
+                {1,0}, {-1,0}, {0,1}, {0,-1} // same as rook
+        };
+        return slidingMoves(board, position, possibleDirections);
     }
+
+    private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition position) {
+        // knights move two squares one way, one square perpendicular (never lands next to itself)
+        int[][] possibleDirections = {
+                {-1,2},     {1,2},
+                {-2,1},            {2,1},
+
+                {-2,-1},           {2,-1},
+                {-1,-2},     {1,-2}
+        };
+        return hoppingMoves(board, position, possibleDirections);
+    }
+
+    private Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition position) {
+        // kings move one square in any direction, no more than one square.
+        int[][] possibleDirections = {
+                {-1,1},{0,1},{1,1},
+                {-1,0},      {1,0},
+                {-1,-1},{0,-1},{1,-1}
+        };
+        return hoppingMoves(board, position, possibleDirections);
+    }
+
+
 
     private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition position) {
         ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
 
         return moves;
     }
-    }
+}
