@@ -69,20 +69,48 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        switch(this.getPieceType()) {
+        return switch(this.getPieceType()) {
             case BISHOP -> bishopMoves(board, myPosition);
-            case ROOK -> rookMoves();
-            case KNIGHT -> knightMoves();
-            case KING -> kingMoves();
-            case QUEEN -> queenMoves();
-            case PAWN -> pawnMoves();
-        }
+            case ROOK -> rookMoves(board, myPosition);
+            case KNIGHT -> knightMoves(board, myPosition);
+            case KING -> kingMoves(board, myPosition);
+            case QUEEN -> queenMoves(board, myPosition);
+            case PAWN -> pawnMoves(board, myPosition);
+        };
 
     }
 
     private Collection<ChessMove> bishopMoves(ChessBoard board, ChessPosition position) {
         ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
+        // bishop always moves in some kind of diagonal line, so make sure it can only do that
 
+        int[][] possibleDirections = {{1,1}, {1,-1}, {-1,1}, {-1,-1}};
+        for(int[] direction : possibleDirections) { //basically the java equiv of forEach(){} in js
+            int row = position.getRow();
+            int col = position.getColumn();
+
+            while (true) {
+                row += direction[0];
+                col += direction[1];
+
+                // did we somehow invent more spaces on the board that totally exist???
+                if (row < 1 || col < 1 || row > 8 || col > 8) {
+                    break;
+                }
+
+                // is the new space empty?
+                ChessPosition newPosition = new ChessPosition(row, col);
+                ChessPiece target = board.getPiece(newPosition);
+                if (target == null) {
+                    moves.add(new ChessMove(position, newPosition, null)); //promotionPiece is always nothing for bishops
+                } else {
+                    if (target.getTeamColor() != this.getTeamColor()) {
+                        moves.add(new ChessMove(position, newPosition, null));
+                    }
+                    break;
+                }
+            }
+        }
         return moves;
     }
 
