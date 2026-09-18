@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -68,6 +69,50 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+        switch(this.getPieceType()) {
+            case BISHOP -> bishopMoves(board, myPosition);
+            case ROOK -> rookMoves();
+            case KNIGHT -> knightMoves();
+            case KING -> kingMoves();
+            case QUEEN -> queenMoves();
+            case PAWN -> pawnMoves();
+        }
+
     }
-}
+
+    private Collection<ChessMove> bishopMoves(ChessBoard board, ChessPosition position) {
+        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
+
+        return moves;
+    }
+
+    private Collection<ChessMove> rookMoves(ChessBoard board, ChessPosition position) {
+        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
+
+        return moves;
+    }
+
+    private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition position) {
+        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
+
+        return moves;
+    }
+
+    private Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition position) {
+        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
+
+        return moves;
+    }
+
+    private Collection<ChessMove> queenMoves(ChessBoard board, ChessPosition position) {
+        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
+
+        return moves;
+    }
+
+    private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition position) {
+        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
+
+        return moves;
+    }
+    }
