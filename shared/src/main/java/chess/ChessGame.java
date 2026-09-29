@@ -1,6 +1,5 @@
 package chess;
 
-import java.lang.annotation.IncompleteAnnotationException;
 import java.util.Collection;
 
 /**
@@ -69,10 +68,38 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        ChessPosition kingPosition = findKing(teamColor, activeBoard);
+        if (kingPosition == null) return false;
+        for (int row = 1; row <= 8; row++){
+            for (int col = 1; col <= 8; col++){
+                ChessPosition currentPosition = new ChessPosition(row, col);
+                ChessPiece target = activeBoard.getPiece(currentPosition);
+                if ((target != null) && (target.getTeamColor() != teamColor)) {
+                    for (ChessMove move : target.pieceMoves(activeBoard, currentPosition)) {
+                        if (move.getEndPosition().equals(kingPosition)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
-
+    private ChessPosition findKing(TeamColor team, ChessBoard board) {
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPiece target = board.getPiece(new ChessPosition(row, col));
+                if (target == null) continue;
+                boolean isKing = target.getPieceType() == ChessPiece.PieceType.KING;
+                if (isKing && target.getTeamColor() != team) continue;
+                if (isKing) {
+                    return new ChessPosition(row, col);
+                }
+            }
+        }
+        return null;
+    }
 
 
     /**
