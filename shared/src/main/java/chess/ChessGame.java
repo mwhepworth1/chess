@@ -56,8 +56,8 @@ public class ChessGame {
         for (ChessMove move : piece.pieceMoves(activeBoard, startPosition)) {
             ChessBoard copy = activeBoard.createCopy(); // this creates a copy and does not point copy to the same entry of activeBoard in ram!!
 
-            copy.addPiece(move.getEndPosition(), piece);
-            copy.addPiece(move.getStartPosition(), null);
+            movePiece(copy, move, piece);
+
             if (!isInCheckAnyBoard(piece.getTeamColor(), copy)) {
                 legalMoves.add(move);
             }
@@ -72,7 +72,24 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        ChessPosition start = move.getStartPosition();
+        ChessPiece piece = activeBoard.getPiece(start);
+
+        if (piece == null) throw new InvalidMoveException("No active piece.");
+        if (piece.getTeamColor() != activeColor) throw new InvalidMoveException("Targeted piece does not belong to the current player!");
+        Collection<ChessMove> moves = validMoves(start);
+        if (!moves.contains(move)) throw new InvalidMoveException("Invalid move.");
+        ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
+
+        ChessPiece pieceToPlace = piece;
+        if (promotionPiece != null) {
+            pieceToPlace = new ChessPiece(piece.getTeamColor(), promotionPiece);
+        }
+
+        movePiece(activeBoard, move, pieceToPlace);
+
+        // switch turns since one move per turn
+        activeColor = (activeColor == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }
 
     /**
@@ -158,4 +175,10 @@ public class ChessGame {
     public ChessBoard getBoard() {
         return activeBoard;
     }
+
+    private void movePiece(ChessBoard board, ChessMove move, ChessPiece piece) {
+        board.addPiece(move.getEndPosition(), piece);
+        board.addPiece(move.getStartPosition(), null);
+    }
+
 }
