@@ -1,5 +1,6 @@
 package chess;
 
+import java.lang.annotation.IncompleteAnnotationException;
 import java.util.Collection;
 
 /**
@@ -9,16 +10,18 @@ import java.util.Collection;
  * signature of the existing methods.
  */
 public class ChessGame {
-
+    private ChessBoard activeBoard = new ChessBoard();
+    private TeamColor activeColor;
     public ChessGame() {
-
+        activeBoard.resetBoard();
+        activeColor = TeamColor.WHITE;
     }
 
     /**
      * @return Which team's turn it is
      */
     public TeamColor getTeamTurn() {
-        throw new RuntimeException("Not implemented");
+        return activeColor;
     }
 
     /**
@@ -27,7 +30,7 @@ public class ChessGame {
      * @param team the team whose turn it is
      */
     public void setTeamTurn(TeamColor team) {
-        throw new RuntimeException("Not implemented");
+        activeColor = team;
     }
 
     /**
@@ -69,6 +72,9 @@ public class ChessGame {
         throw new RuntimeException("Not implemented");
     }
 
+
+
+
     /**
      * Determines if the given team is in checkmate
      *
@@ -96,7 +102,7 @@ public class ChessGame {
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
-        throw new RuntimeException("Not implemented");
+        activeBoard = board;
     }
 
     /**
@@ -105,6 +111,6 @@ public class ChessGame {
      * @return the chessboard
      */
     public ChessBoard getBoard() {
-        throw new RuntimeException("Not implemented");
+        return activeBoard;
     }
 }
