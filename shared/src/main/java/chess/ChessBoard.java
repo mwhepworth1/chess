@@ -16,6 +16,15 @@ public class ChessBoard {
     public ChessBoard() {
         
     }
+    public ChessBoard createCopy() {
+        ChessBoard copy = new ChessBoard();
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                copy.squares[row][col] = this.squares[row][col];
+            }
+        }
+        return copy;
+    }
 
     /**
      * Adds a chess piece to the chessboard

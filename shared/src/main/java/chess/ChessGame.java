@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -48,7 +49,20 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        ChessPiece piece = activeBoard.getPiece(startPosition);
+        if (piece == null) return null;
+
+        ArrayList<ChessMove> legalMoves = new ArrayList<>();
+        for (ChessMove move : piece.pieceMoves(activeBoard, startPosition)) {
+            ChessBoard copy = activeBoard.createCopy(); // this creates a copy and does not point copy to the same entry of activeBoard in ram!!
+
+            copy.addPiece(move.getEndPosition(), piece);
+            copy.addPiece(move.getStartPosition(), null);
+            if (!isInCheckAnyBoard(piece.getTeamColor(), copy)) {
+                legalMoves.add(move);
+            }
+        }
+        return legalMoves;
     }
 
     /**
@@ -68,14 +82,18 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        ChessPosition kingPosition = findKing(teamColor, activeBoard);
+        return isInCheckAnyBoard(teamColor, activeBoard);
+    }
+
+    private boolean isInCheckAnyBoard(TeamColor teamColor, ChessBoard board) {
+        ChessPosition kingPosition = findKing(teamColor, board);
         if (kingPosition == null) return false;
         for (int row = 1; row <= 8; row++){
             for (int col = 1; col <= 8; col++){
                 ChessPosition currentPosition = new ChessPosition(row, col);
-                ChessPiece target = activeBoard.getPiece(currentPosition);
+                ChessPiece target = board.getPiece(currentPosition);
                 if ((target != null) && (target.getTeamColor() != teamColor)) {
-                    for (ChessMove move : target.pieceMoves(activeBoard, currentPosition)) {
+                    for (ChessMove move : target.pieceMoves(board, currentPosition)) {
                         if (move.getEndPosition().equals(kingPosition)) {
                             return true;
                         }
