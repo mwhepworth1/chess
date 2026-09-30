@@ -3,6 +3,7 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A class that can manage a chess game, making moves on a board
@@ -22,11 +23,15 @@ public class ChessGame {
     private boolean whiteRightRookMoved;
     private boolean blackRightRookMoved;
 
+    // En Passant
+    private ChessMove lastMove;
+
     public ChessGame() {
         activeBoard.resetBoard();
         activeColor = TeamColor.WHITE;
 
         resetCastling();
+        this.lastMove = null;
     }
     private void resetCastling() {
         this.whiteKingMoved = false;
@@ -119,6 +124,29 @@ public class ChessGame {
                     legalMoves.add(new ChessMove(startPosition, queensideLand, null));
                 }
             }
+
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && lastMove != null) {
+            ChessPosition lastMoveStartPosition = lastMove.getStartPosition();
+            ChessPosition lastMoveEndPosition = lastMove.getEndPosition();
+            ChessPiece lastPiece = activeBoard.getPiece(lastMoveEndPosition);
+
+            boolean enemyPawn = lastPiece != null && lastPiece.getPieceType() == ChessPiece.PieceType.PAWN && lastPiece.getTeamColor() != piece.getTeamColor();
+            boolean doubleStep = Math.abs(lastMoveEndPosition.getRow() - lastMoveStartPosition.getRow()) == 2;
+            boolean beside = lastMoveEndPosition.getRow() == startPosition.getRow() && Math.abs(lastMoveEndPosition.getColumn() - startPosition.getColumn()) == 1;
+
+            if (enemyPawn && doubleStep && beside) {
+                int direction = (piece.getTeamColor() == TeamColor.WHITE) ? 1 : -1;
+                ChessPosition landing = new ChessPosition(startPosition.getRow() + direction, lastMoveEndPosition.getColumn());
+                ChessMove epMove = new ChessMove(startPosition, landing, null);
+
+                ChessBoard copy = activeBoard.createCopy();
+                movePiece(copy, epMove, piece);
+                copy.addPiece(lastMoveEndPosition, null); // this would be the pawn we captured
+                if (!isInCheckAnyBoard(piece.getTeamColor(), copy)) {
+                    legalMoves.add(epMove);
+                }
+            }
         }
 
         return legalMoves;
@@ -158,7 +186,15 @@ public class ChessGame {
             pieceToPlace = new ChessPiece(piece.getTeamColor(), promotionPiece);
         }
 
+        boolean isEnPassant = piece.getPieceType() == ChessPiece.PieceType.PAWN
+                && start.getColumn() != move.getEndPosition().getColumn()
+                && activeBoard.getPiece(move.getEndPosition()) == null;
+
         movePiece(activeBoard, move, pieceToPlace);
+
+        if (isEnPassant) {
+            activeBoard.addPiece(new ChessPosition(start.getRow(), move.getEndPosition().getColumn()), null);
+        }
 
         int colChange = move.getEndPosition().getColumn() - start.getColumn();
         if (piece.getPieceType() == ChessPiece.PieceType.KING && Math.abs(colChange) == 2) {
@@ -178,6 +214,7 @@ public class ChessGame {
 
         // switch turns since one move per turn
         activeColor = (activeColor == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+        this.lastMove = move;
     }
 
     private void updateCastlingFlags(ChessMove move) {
@@ -265,6 +302,7 @@ public class ChessGame {
     public void setBoard(ChessBoard board) {
         activeBoard = board;
         resetCastling();
+        this.lastMove = null;
     }
 
     /**
@@ -294,4 +332,27 @@ public class ChessGame {
         return false;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ChessGame chessGame = (ChessGame) o;
+        return whiteKingMoved == chessGame.whiteKingMoved && blackKingMoved == chessGame.blackKingMoved && whiteLeftRookMoved == chessGame.whiteLeftRookMoved && blackLeftRookMoved == chessGame.blackLeftRookMoved && whiteRightRookMoved == chessGame.whiteRightRookMoved && blackRightRookMoved == chessGame.blackRightRookMoved && Objects.equals(activeBoard, chessGame.activeBoard) && activeColor == chessGame.activeColor && Objects.equals(lastMove, chessGame.lastMove);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(activeBoard);
+        result = 31 * result + Objects.hashCode(activeColor);
+        result = 31 * result + Boolean.hashCode(whiteKingMoved);
+        result = 31 * result + Boolean.hashCode(blackKingMoved);
+        result = 31 * result + Boolean.hashCode(whiteLeftRookMoved);
+        result = 31 * result + Boolean.hashCode(blackLeftRookMoved);
+        result = 31 * result + Boolean.hashCode(whiteRightRookMoved);
+        result = 31 * result + Boolean.hashCode(blackRightRookMoved);
+        result = 31 * result + Objects.hashCode(lastMove);
+        return result;
+    }
 }
