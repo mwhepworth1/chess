@@ -2,7 +2,6 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
 
 /**
  * A class that can manage a chess game, making moves on a board
@@ -13,10 +12,30 @@ import java.util.Objects;
 public class ChessGame {
     private ChessBoard activeBoard = new ChessBoard();
     private TeamColor activeColor;
+
+    // Castling Fields
+    private boolean whiteKingMoved;
+    private boolean blackKingMoved;
+    private boolean whiteLeftRookMoved;
+    private boolean blackLeftRookMoved;
+    private boolean whiteRightRookMoved;
+    private boolean blackRightRookMoved;
+
     public ChessGame() {
         activeBoard.resetBoard();
         activeColor = TeamColor.WHITE;
+
+        resetCastling();
     }
+    private void resetCastling() {
+        this.whiteKingMoved = false;
+        this.blackKingMoved = false;
+        this.whiteLeftRookMoved = false;
+        this.blackLeftRookMoved = false;
+        this.whiteRightRookMoved = false;
+        this.blackRightRookMoved = false;
+    }
+
 
     /**
      * @return Which team's turn it is
@@ -63,8 +82,59 @@ public class ChessGame {
                 legalMoves.add(move);
             }
         }
+
+        // Castling Moves Logic
+        if (piece.getPieceType() == ChessPiece.PieceType.KING) {
+            TeamColor teamColor = piece.getTeamColor();
+            int row = (TeamColor.WHITE == teamColor) ? 1 : 8;
+            boolean kingMoved = (TeamColor.WHITE == teamColor) ? whiteKingMoved : blackKingMoved;
+            ChessPosition kingStartPosition = new ChessPosition(row, 5);
+
+            if (startPosition.equals(kingStartPosition) && !kingMoved && !isInCheck(teamColor)) {
+                // kingside
+                boolean rightRookMoved = (TeamColor.WHITE == teamColor) ? whiteRightRookMoved : blackRightRookMoved;
+                ChessPosition kingsideRook = new ChessPosition(row, 8);
+                ChessPosition kingsidePass = new ChessPosition(row, 6);
+                ChessPosition kingsideLand = new ChessPosition(row, 7);
+
+                if (isUnmovedRook(kingsideRook, teamColor, rightRookMoved)
+                        && isEmpty(kingsidePass) && isEmpty(kingsideLand)
+                        && kingSafeAt(teamColor, startPosition, kingsidePass)
+                        && kingSafeAt(teamColor, startPosition, kingsideLand)) {
+                    legalMoves.add(new ChessMove(startPosition, kingsideLand, null));
+                }
+
+                //queenside
+                boolean leftRookMoved = (TeamColor.WHITE == teamColor) ? whiteLeftRookMoved : blackLeftRookMoved;
+                ChessPosition queensideRook = new ChessPosition(row, 1);
+                ChessPosition queensideGap  = new ChessPosition(row, 2);
+                ChessPosition queensidePass = new ChessPosition(row, 4);
+                ChessPosition queensideLand = new ChessPosition(row, 3);
+
+                if (isUnmovedRook(queensideRook, teamColor, leftRookMoved)
+                        && isEmpty(queensideGap) && isEmpty(queensideLand) && isEmpty(queensidePass)
+                        && kingSafeAt(teamColor, startPosition, queensidePass)
+                        && kingSafeAt(teamColor, startPosition, queensideLand)) {
+                    legalMoves.add(new ChessMove(startPosition, queensideLand, null));
+                }
+            }
+        }
+
         return legalMoves;
     }
+    private boolean isEmpty(ChessPosition position) {
+        return activeBoard.getPiece(position) == null;
+    }
+    private boolean isUnmovedRook (ChessPosition position, TeamColor team, boolean rookMoved) {
+        ChessPiece piece = activeBoard.getPiece(position);
+        return piece != null && piece.getPieceType() == ChessPiece.PieceType.ROOK && piece.getTeamColor() == team && !rookMoved;
+    }
+    private boolean kingSafeAt(TeamColor team, ChessPosition from, ChessPosition to) {
+        ChessBoard copy  = activeBoard.createCopy();
+        movePiece(copy, new ChessMove(from, to, null), activeBoard.getPiece(from));
+        return isInCheckAnyBoard(team, copy);
+    }
+
 
     /**
      * Makes a move in the chess game
@@ -166,6 +236,7 @@ public class ChessGame {
      */
     public void setBoard(ChessBoard board) {
         activeBoard = board;
+        resetCastling();
     }
 
     /**
@@ -195,20 +266,4 @@ public class ChessGame {
         return false;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        ChessGame chessGame = (ChessGame) o;
-        return Objects.equals(activeBoard, chessGame.activeBoard) && activeColor == chessGame.activeColor;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = Objects.hashCode(activeBoard);
-        result = 31 * result + Objects.hashCode(activeColor);
-        return result;
-    }
 }
