@@ -2,6 +2,7 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * A class that can manage a chess game, making moves on a board
@@ -132,7 +133,7 @@ public class ChessGame {
     private boolean kingSafeAt(TeamColor team, ChessPosition from, ChessPosition to) {
         ChessBoard copy  = activeBoard.createCopy();
         movePiece(copy, new ChessMove(from, to, null), activeBoard.getPiece(from));
-        return isInCheckAnyBoard(team, copy);
+        return !isInCheckAnyBoard(team, copy);
     }
 
 
@@ -159,8 +160,35 @@ public class ChessGame {
 
         movePiece(activeBoard, move, pieceToPlace);
 
+        int colChange = move.getEndPosition().getColumn() - start.getColumn();
+        if (piece.getPieceType() == ChessPiece.PieceType.KING && Math.abs(colChange) == 2) {
+            int row = start.getRow();
+            if (colChange > 0) {
+                ChessPosition rookFrom = new ChessPosition(row, 8);
+                ChessPosition rookTo = new ChessPosition(row, 6);
+                movePiece(activeBoard, new ChessMove(rookFrom, rookTo, null), activeBoard.getPiece(rookFrom));
+            } else {
+                ChessPosition rookFrom = new ChessPosition(row, 1);
+                ChessPosition rookTo = new ChessPosition(row, 4);
+                movePiece(activeBoard, new ChessMove(rookFrom, rookTo, null), activeBoard.getPiece(rookFrom));
+            }
+        }
+
+        updateCastlingFlags(move);
+
         // switch turns since one move per turn
         activeColor = (activeColor == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+    }
+
+    private void updateCastlingFlags(ChessMove move) {
+        for (ChessPosition pos : List.of(move.getStartPosition(), move.getEndPosition())) {
+            if (pos.equals(new ChessPosition(1, 5))) whiteKingMoved = true;
+            if (pos.equals(new ChessPosition(1, 1))) whiteLeftRookMoved = true;
+            if (pos.equals(new ChessPosition(1, 8))) whiteRightRookMoved = true;
+            if (pos.equals(new ChessPosition(8, 5))) blackKingMoved = true;
+            if (pos.equals(new ChessPosition(8, 1))) blackLeftRookMoved = true;
+            if (pos.equals(new ChessPosition(8, 8))) blackRightRookMoved = true;
+        }
     }
 
     /**
