@@ -23,11 +23,14 @@ public class Server {
 
         ClearHandler clearHandler = new ClearHandler(new ClearService(userDAO, gameDAO, authDAO));
         UserHandler userHandler = new UserHandler(new UserService(userDAO, authDAO));
+        GameHandler gameHandler = new GameHandler(new GameService(gameDAO, authDAO));
 
         javalin.delete("/db", clearHandler::clear);
         javalin.post("/user", userHandler::register);
         javalin.post("/session", userHandler::login);
         javalin.delete("/session", userHandler::logout);
+        javalin.post("/game", gameHandler::createGame);
+        javalin.get("/game", gameHandler::listGames);
 
         javalin.exception(BadRequestException.class, (e, ctx) -> sendError(ctx, 400, e.getMessage()));
         javalin.exception(JsonSyntaxException.class, (e, ctx) -> sendError(ctx, 400, "Error: bad request"));

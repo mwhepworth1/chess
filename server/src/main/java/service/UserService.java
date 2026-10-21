@@ -42,16 +42,8 @@ public class UserService {
     }
 
     public void logout(String authToken) throws UnauthorizedException, DataAccessException {
-        authenticate(authToken);
+        AuthHelper.authenticate(authDAO, authToken);
         authDAO.deleteAuth(authToken);
-    }
-
-    private AuthData authenticate(String authToken) throws UnauthorizedException, DataAccessException {
-        AuthData auth = authToken == null ? null : authDAO.getAuth(authToken);
-        if (auth == null) {
-            throw new UnauthorizedException();
-        }
-        return auth;
     }
 
     private String createAuth(String username) throws DataAccessException {
