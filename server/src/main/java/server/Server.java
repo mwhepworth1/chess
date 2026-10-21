@@ -26,6 +26,8 @@ public class Server {
 
         javalin.delete("/db", clearHandler::clear);
         javalin.post("/user", userHandler::register);
+        javalin.post("/session", userHandler::login);
+        javalin.delete("/session", userHandler::logout);
 
         javalin.exception(BadRequestException.class, (e, ctx) -> sendError(ctx, 400, e.getMessage()));
         javalin.exception(JsonSyntaxException.class, (e, ctx) -> sendError(ctx, 400, "Error: bad request"));
