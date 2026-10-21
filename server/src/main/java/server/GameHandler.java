@@ -21,4 +21,9 @@ public class GameHandler {
         ListGamesResult res = gameService.listGames(ctx.header("authorization"));
         ctx.status(200).result(gson.toJson(res));
     }
+    public void joinGame(Context ctx) throws Exception {
+        JoinGameRequest req = gson.fromJson(ctx.body(), JoinGameRequest.class);
+        gameService.joinGame(ctx.header("authorization"), req);
+        ctx.status(200).result("{}");
+    }
 }

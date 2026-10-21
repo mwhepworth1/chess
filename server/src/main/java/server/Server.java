@@ -31,6 +31,7 @@ public class Server {
         javalin.delete("/session", userHandler::logout);
         javalin.post("/game", gameHandler::createGame);
         javalin.get("/game", gameHandler::listGames);
+        javalin.put("/game", gameHandler::joinGame);
 
         javalin.exception(BadRequestException.class, (e, ctx) -> sendError(ctx, 400, e.getMessage()));
         javalin.exception(JsonSyntaxException.class, (e, ctx) -> sendError(ctx, 400, "Error: bad request"));
