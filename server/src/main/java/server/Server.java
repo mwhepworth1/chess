@@ -3,7 +3,7 @@ package server;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import dataaccess.*;
-import io.javalin.*;
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import service.*;
 

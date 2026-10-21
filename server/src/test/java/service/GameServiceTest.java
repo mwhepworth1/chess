@@ -84,6 +84,15 @@ class GameServiceTest {
     }
 
     @Test
+    void joinGameWhiteTaken() throws Exception {
+        int gameID = gameService.createGame(TOKEN, new CreateGameRequest("myGame")).gameID();
+        gameService.joinGame(OTHER_TOKEN, new JoinGameRequest(ChessGame.TeamColor.WHITE, gameID));
+
+        assertThrows(AlreadyTakenException.class,
+                () -> gameService.joinGame(TOKEN, new JoinGameRequest(ChessGame.TeamColor.WHITE, gameID)));
+    }
+
+    @Test
     void joinGameBadGameID() {
         assertThrows(BadRequestException.class,
                 () -> gameService.joinGame(TOKEN, new JoinGameRequest(ChessGame.TeamColor.WHITE, 999)));

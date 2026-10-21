@@ -1,7 +1,9 @@
 package service;
 
-import dataaccess.*;
 import chess.ChessGame;
+import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
+import dataaccess.GameDAO;
 import model.AuthData;
 import model.GameData;
 
@@ -14,7 +16,8 @@ public class GameService {
         this.authDAO = authDAO;
     }
 
-    public CreateGameResult createGame(String authToken, CreateGameRequest req) throws UnauthorizedException, BadRequestException, DataAccessException {
+    public CreateGameResult createGame(String authToken, CreateGameRequest req)
+            throws UnauthorizedException, BadRequestException, DataAccessException {
         AuthHelper.authenticate(authDAO, authToken);
         if (req == null || req.gameName() == null || req.gameName().isBlank()) {
             throw new BadRequestException();

@@ -17,7 +17,8 @@ public class UserService {
         this.authDAO = authDAO;
     }
 
-    public RegisterResult register(RegisterRequest req) throws BadRequestException, AlreadyTakenException, DataAccessException {
+    public RegisterResult register(RegisterRequest req)
+            throws BadRequestException, AlreadyTakenException, DataAccessException {
         if (req == null || isBlank(req.username()) || isBlank(req.password()) || isBlank(req.email())) {
             throw new BadRequestException();
         }
@@ -29,7 +30,8 @@ public class UserService {
         return new RegisterResult(req.username(), authToken);
     }
 
-    public LoginResult login(LoginRequest req) throws BadRequestException, UnauthorizedException, DataAccessException {
+    public LoginResult login(LoginRequest req)
+            throws BadRequestException, UnauthorizedException, DataAccessException {
         if (req == null || isBlank(req.username()) || isBlank(req.password())) {
             throw new BadRequestException();
         }
@@ -48,7 +50,7 @@ public class UserService {
 
     private String createAuth(String username) throws DataAccessException {
         String authToken = UUID.randomUUID().toString();
-        authDAO.createAuth((new AuthData(authToken, username)));
+        authDAO.createAuth(new AuthData(authToken, username));
         return authToken;
     }
 

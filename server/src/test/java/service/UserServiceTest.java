@@ -1,11 +1,6 @@
 package service;
 
-import dataaccess.AuthDAO;
-import dataaccess.DataAccessException;
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryUserDAO;
-import dataaccess.UserDAO;
-import model.AuthData;
+import dataaccess.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +49,7 @@ public class UserServiceTest {
 
         assertNull(userDAO.getUser("bob"));
     }
+
     @Test
     void loginSuccess() throws Exception {
         RegisterResult registered = userService.register(new RegisterRequest("bob", "pass", "bob@mail.com"));

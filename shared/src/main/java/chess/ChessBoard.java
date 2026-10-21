@@ -1,7 +1,6 @@
 package chess;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * A chessboard that can hold and rearrange chess pieces.
@@ -10,18 +9,29 @@ import java.util.List;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    private ChessPiece[][] squares = new ChessPiece[8][8];
-    private ChessPiece.PieceType[] backRank = {ChessPiece.PieceType.ROOK, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.KING, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.ROOK};
-    private int rowLength = 8;
-    public ChessBoard() {
-        
+    static final int BOARD_SIZE = 8;
+
+    private static final ChessPiece.PieceType[] BACK_RANK = {
+            ChessPiece.PieceType.ROOK,
+            ChessPiece.PieceType.KNIGHT,
+            ChessPiece.PieceType.BISHOP,
+            ChessPiece.PieceType.QUEEN,
+            ChessPiece.PieceType.KING,
+            ChessPiece.PieceType.BISHOP,
+            ChessPiece.PieceType.KNIGHT,
+            ChessPiece.PieceType.ROOK
+    };
+
+    private ChessPiece[][] squares = new ChessPiece[BOARD_SIZE][BOARD_SIZE];
+
+    static boolean isOnBoard(int row, int col) {
+        return row >= 1 && row <= BOARD_SIZE && col >= 1 && col <= BOARD_SIZE;
     }
+
     public ChessBoard createCopy() {
         ChessBoard copy = new ChessBoard();
-        for (int row = 0; row < 8; row++) {
-            for (int col = 0; col < 8; col++) {
-                copy.squares[row][col] = this.squares[row][col];
-            }
+        for (int row = 0; row < BOARD_SIZE; row++) {
+            copy.squares[row] = squares[row].clone();
         }
         return copy;
     }
@@ -33,7 +43,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-          squares[position.getRow() -1][position.getColumn() -1] = piece;
+        squares[position.getRow() - 1][position.getColumn() - 1] = piece;
     }
 
     /**
@@ -44,7 +54,7 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        return squares[position.getRow() -1][position.getColumn() -1];
+        return squares[position.getRow() - 1][position.getColumn() - 1];
     }
 
     /**
@@ -52,20 +62,14 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        // reset board should clear the squares array
-        squares = new ChessPiece[8][8];
+        squares = new ChessPiece[BOARD_SIZE][BOARD_SIZE];
 
-        for (int row = 1; row <= rowLength; row++) {
-            if(List.of(3,4,5,6).contains(row)) continue; // adios empty rows
-
-            for (int col = 1; col <= backRank.length; col++) {
-                // row 1 and 2 are always gonna be white, so assume everything else can be black
-                ChessGame.TeamColor color = (row == 1 || row == 2) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
-                // back rank row 1 and 8, pawns rows 2 and 7. nothing else.
-                ChessPiece.PieceType piece = (row == 1 || row == 8) ? backRank[(col - 1)] : (row == 2 || row == 7) ? ChessPiece.PieceType.PAWN : null;
-
-                this.addPiece(new ChessPosition(row, col), new ChessPiece(color, piece));
-            }
+        for (int col = 1; col <= BOARD_SIZE; col++) {
+            ChessPiece.PieceType backRankType = BACK_RANK[col - 1];
+            addPiece(new ChessPosition(1, col), new ChessPiece(ChessGame.TeamColor.WHITE, backRankType));
+            addPiece(new ChessPosition(2, col), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
+            addPiece(new ChessPosition(7, col), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
+            addPiece(new ChessPosition(8, col), new ChessPiece(ChessGame.TeamColor.BLACK, backRankType));
         }
     }
 
