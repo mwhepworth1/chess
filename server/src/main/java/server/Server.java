@@ -11,9 +11,16 @@ import java.util.Map;
 
 public class Server {
 
+
     private final Javalin javalin;
 
     public Server() {
+        try {
+            DatabaseManager.initializeDatabase();
+        } catch (DataAccessException ex) {
+            throw new RuntimeException("Unable to initialize database", ex);
+        }
+
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register your endpoints and exception handlers here.
