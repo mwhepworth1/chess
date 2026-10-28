@@ -5,6 +5,8 @@ import com.google.gson.JsonSyntaxException;
 import dataaccess.*;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import dataaccess.sql.*;
+
 import service.*;
 
 import java.util.Map;
@@ -24,9 +26,9 @@ public class Server {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register your endpoints and exception handlers here.
-        UserDAO userDAO = new MemoryUserDAO();
-        GameDAO gameDAO = new MemoryGameDAO();
-        AuthDAO authDAO = new MemoryAuthDAO();
+        UserDAO userDAO = new SqlUserDAO();
+        GameDAO gameDAO = new SqlGameDAO();
+        AuthDAO authDAO = new SqlAuthDAO();
 
         ClearHandler clearHandler = new ClearHandler(new ClearService(userDAO, gameDAO, authDAO));
         UserHandler userHandler = new UserHandler(new UserService(userDAO, authDAO));
