@@ -3,16 +3,14 @@ package server;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import dataaccess.*;
+import dataaccess.sql.*;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
-import dataaccess.sql.*;
-
 import service.*;
 
 import java.util.Map;
 
 public class Server {
-
 
     private final Javalin javalin;
 

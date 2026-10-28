@@ -4,37 +4,38 @@ import java.sql.*;
 import java.util.Properties;
 
 public class DatabaseManager {
+    private static final String[] CREATE_STATEMENTS = {
+            """
+            CREATE TABLE IF NOT EXISTS user (
+                username VARCHAR(255) NOT NULL,
+                password VARCHAR(60) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                PRIMARY KEY (username)
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS auth (
+                authToken VARCHAR(255) NOT NULL,
+                username VARCHAR(255) NOT NULL,
+                PRIMARY KEY (authToken)
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS game (
+                gameID INT NOT NULL AUTO_INCREMENT,
+                whiteUsername VARCHAR(255),
+                blackUsername VARCHAR(255),
+                gameName VARCHAR(255) NOT NULL,
+                game TEXT NOT NULL,
+                PRIMARY KEY (gameID)
+            )
+            """
+    };
+
     private static String databaseName;
     private static String dbUsername;
     private static String dbPassword;
     private static String connectionUrl;
-    private static final String[] CREATE_STATEMENTS = {
-            """
-        CREATE TABLE IF NOT EXISTS user (
-            username VARCHAR(255) NOT NULL,
-            password VARCHAR(60) NOT NULL,
-            email VARCHAR(255) NOT NULL,
-            PRIMARY KEY (username)
-        )
-        """,
-            """
-        CREATE TABLE IF NOT EXISTS auth (
-            authToken VARCHAR(255) NOT NULL,
-            username VARCHAR(255) NOT NULL,
-            PRIMARY KEY (authToken)
-        )
-        """,
-            """
-        CREATE TABLE IF NOT EXISTS game (
-            gameID INT NOT NULL AUTO_INCREMENT,
-            whiteUsername VARCHAR(255),
-            blackUsername VARCHAR(255),
-            gameName VARCHAR(255) NOT NULL,
-            game TEXT NOT NULL,
-            PRIMARY KEY (gameID)
-        )
-        """
-    };
 
     /*
      * Load the database information for the db.properties file.
@@ -56,6 +57,9 @@ public class DatabaseManager {
         }
     }
 
+    /**
+     * Creates the database and all required tables if they do not already exist.
+     */
     static public void initializeDatabase() throws DataAccessException {
         createDatabase();
         try (var conn = getConnection()) {
