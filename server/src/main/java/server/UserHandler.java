@@ -2,6 +2,10 @@ package server;
 
 import com.google.gson.Gson;
 import io.javalin.http.Context;
+import model.LoginRequest;
+import model.LoginResult;
+import model.RegisterRequest;
+import model.RegisterResult;
 import service.*;
 
 public class UserHandler {

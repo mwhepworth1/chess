@@ -2,6 +2,10 @@ package server;
 
 import com.google.gson.Gson;
 import io.javalin.http.Context;
+import model.CreateGameRequest;
+import model.CreateGameResult;
+import model.JoinGameRequest;
+import model.ListGamesResult;
 import service.*;
 
 public class GameHandler {
