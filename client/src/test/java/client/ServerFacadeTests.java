@@ -1,9 +1,13 @@
 package client;
 
 import chess.ChessGame;
+import com.sun.net.httpserver.HttpServer;
 import model.*;
 import org.junit.jupiter.api.*;
 import server.Server;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -60,6 +64,29 @@ public class ServerFacadeTests {
 
         ResponseException ex = assertThrows(ResponseException.class, () -> badFacade.clear());
         assertEquals(0, ex.getStatusCode());
+    }
+
+    @Test
+    public void errorResponseNotJson() throws IOException {
+        // a fake server that always answers with a plain-text (non-JSON) 500 error
+        HttpServer fakeServer = HttpServer.create(new InetSocketAddress(0), 0);
+        fakeServer.createContext("/", exchange -> {
+            byte[] body = "Internal Server Error".getBytes();
+            exchange.sendResponseHeaders(500, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        fakeServer.start();
+
+        try {
+            ServerFacade fakeFacade = new ServerFacade(fakeServer.getAddress().getPort());
+
+            ResponseException ex = assertThrows(ResponseException.class, () -> fakeFacade.clear());
+            assertEquals(500, ex.getStatusCode());
+            assertEquals("Request failed", ex.getMessage());
+        } finally {
+            fakeServer.stop(0);
+        }
     }
 
 
