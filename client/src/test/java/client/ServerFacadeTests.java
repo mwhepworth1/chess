@@ -51,6 +51,18 @@ public class ServerFacadeTests {
     }
 
 
+    // ---------- server unreachable ----------
+
+    @Test
+    public void serverUnreachable() {
+        // nothing is listening on port 1, so the request can't connect
+        ServerFacade badFacade = new ServerFacade(1);
+
+        ResponseException ex = assertThrows(ResponseException.class, () -> badFacade.clear());
+        assertEquals(0, ex.getStatusCode());
+    }
+
+
     // ---------- register ----------
 
     @Test
