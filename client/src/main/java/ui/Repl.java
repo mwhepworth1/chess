@@ -77,6 +77,7 @@ public class Repl {
             case "quit" -> running = false;
             case "register" -> register(words);
             case "login" -> login(words);
+            case "logout", "create", "list", "play", "observe" -> printError("Please log in first.");
             default -> printError("Unknown command. Type help to see what you can do.");
         }
     }
@@ -141,7 +142,7 @@ public class Repl {
             case "list" -> listGames();
             case "play" -> playGame(words);
             case "observe" -> observeGame(words);
-            case "quit" -> running = false;
+            case "quit" -> quitWhileLoggedIn();
             default -> printError("Unknown command. Type help to see what you can do.");
         }
     }
@@ -161,12 +162,25 @@ public class Repl {
             facade.logout(authToken);
             System.out.println("Logged out.");
         } catch (ResponseException e) {
-            printError(friendlyMessage(e));
+            if (e.getStatusCode() == 401) {
+                System.out.println("Logged out.");  // session was already gone on the server
+            } else {
+                printError(friendlyMessage(e));
+            }
         }
         // clear local state either way so the user isn't stuck logged in
-        authToken = null;
-        username = null;
-        lastListedGames = null;
+        clearSession();
+    }
+
+    // Log out quietly on the way out so the session doesn't linger on the server
+    private void quitWhileLoggedIn() {
+        try {
+            facade.logout(authToken);
+        } catch (ResponseException e) {
+            // nothing useful to tell the user while quitting
+        }
+        clearSession();
+        running = false;
     }
 
     private void createGame(String[] words) {
@@ -183,9 +197,9 @@ public class Repl {
 
         try {
             facade.createGame(authToken, new CreateGameRequest(gameName));
-            System.out.println("Created game \"" + gameName + "\".");
+            System.out.println("Created game \"" + gameName + "\". Use list to see it.");
         } catch (ResponseException e) {
-            printError(friendlyMessage(e));
+            handleServerError(e);
         }
     }
 
@@ -194,7 +208,7 @@ public class Repl {
             ListGamesResult result = facade.listGames(authToken);
             lastListedGames = new ArrayList<>(result.games());
         } catch (ResponseException e) {
-            printError(friendlyMessage(e));
+            handleServerError(e);
             return;
         }
 
@@ -203,11 +217,19 @@ public class Repl {
             return;
         }
 
+        // pad names so the WHITE/BLACK columns line up
+        int nameWidth = 0;
+        for (GameData game : lastListedGames) {
+            nameWidth = Math.max(nameWidth, game.gameName().length());
+        }
+
         for (int i = 0; i < lastListedGames.size(); i++) {
             GameData game = lastListedGames.get(i);
-            System.out.println("  " + (i + 1) + ". " + game.gameName()
-                    + "   WHITE: " + playerName(game.whiteUsername())
-                    + "   BLACK: " + playerName(game.blackUsername()));
+            String number = String.format("%3d. ", i + 1);
+            String name = String.format("%-" + nameWidth + "s", game.gameName());
+            System.out.println(number + name
+                    + "   WHITE: " + String.format("%-12s", playerName(game.whiteUsername()))
+                    + " BLACK: " + playerName(game.blackUsername()));
         }
     }
 
@@ -232,17 +254,31 @@ public class Repl {
             return;
         }
 
+        // already sitting in that seat? just show the board again
+        String currentPlayer;
+        if (color == ChessGame.TeamColor.WHITE) {
+            currentPlayer = game.whiteUsername();
+        } else {
+            currentPlayer = game.blackUsername();
+        }
+        if (username.equals(currentPlayer)) {
+            System.out.println("Rejoining \"" + game.gameName() + "\" as " + color + ".");
+            drawBoard(game, color);
+            return;
+        }
+
         try {
             facade.joinGame(authToken, new JoinGameRequest(color, game.gameID()));
             System.out.println("Joined \"" + game.gameName() + "\" as " + color + ".");
+            rememberSeat(game, color);
             drawBoard(game, color);
         } catch (ResponseException e) {
             if (e.getStatusCode() == 403) {
                 printError("That color is already taken in this game.");
             } else if (e.getStatusCode() == 400) {
-                printError("Invalid game or color.");
+                printError("That game no longer exists. Run list to refresh.");
             } else {
-                printError(friendlyMessage(e));
+                handleServerError(e);
             }
         }
     }
@@ -285,6 +321,18 @@ public class Repl {
         return lastListedGames.get(number - 1);
     }
 
+    // Update our saved list so it shows we're now in that seat
+    private void rememberSeat(GameData game, ChessGame.TeamColor color) {
+        GameData updated;
+        if (color == ChessGame.TeamColor.WHITE) {
+            updated = new GameData(game.gameID(), username, game.blackUsername(), game.gameName(), game.game());
+        } else {
+            updated = new GameData(game.gameID(), game.whiteUsername(), username, game.gameName(), game.game());
+        }
+        int index = lastListedGames.indexOf(game);
+        lastListedGames.set(index, updated);
+    }
+
     private String playerName(String name) {
         if (name == null) {
             return "(open)";
@@ -305,6 +353,23 @@ public class Repl {
 
 
     // ---------- Helpers ----------
+
+    // For errors while logged in. A 401 means our session is gone
+    // (e.g. the server restarted), so drop back to the logged-out menu.
+    private void handleServerError(ResponseException e) {
+        if (e.getStatusCode() == 401) {
+            clearSession();
+            printError("Your session has expired. Please log in again.");
+        } else {
+            printError(friendlyMessage(e));
+        }
+    }
+
+    private void clearSession() {
+        authToken = null;
+        username = null;
+        lastListedGames = null;
+    }
 
     // General messages for errors that aren't specific to one command
     private String friendlyMessage(ResponseException e) {
