@@ -1,5 +1,6 @@
 package ui;
 
+import chess.ChessBoard;
 import chess.ChessGame;
 import client.ResponseException;
 import client.ServerFacade;
@@ -234,7 +235,7 @@ public class Repl {
         try {
             facade.joinGame(authToken, new JoinGameRequest(color, game.gameID()));
             System.out.println("Joined \"" + game.gameName() + "\" as " + color + ".");
-            drawBoard(color);
+            drawBoard(game, color);
         } catch (ResponseException e) {
             if (e.getStatusCode() == 403) {
                 printError("That color is already taken in this game.");
@@ -258,7 +259,7 @@ public class Repl {
         }
 
         System.out.println("Observing \"" + game.gameName() + "\".");
-        drawBoard(ChessGame.TeamColor.WHITE);
+        drawBoard(game, ChessGame.TeamColor.WHITE);
     }
 
     // Turns the number the user typed into a game from the last list.
@@ -291,9 +292,15 @@ public class Repl {
         return name;
     }
 
-    // Placeholder until Chunk 5
-    private void drawBoard(ChessGame.TeamColor perspective) {
-        System.out.println("(board for " + perspective + " goes here)");
+    private void drawBoard(GameData game, ChessGame.TeamColor perspective) {
+        ChessBoard board;
+        if (game.game() != null) {
+            board = game.game().getBoard();
+        } else {
+            board = new ChessBoard();
+            board.resetBoard();
+        }
+        BoardPrinter.drawBoard(board, perspective);
     }
 
 
